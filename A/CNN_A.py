@@ -81,7 +81,7 @@ def prepare_data_cnn(x_train, y_train, x_val, y_val, x_test, y_test):
     return X_train_tensor, Y_train_tensor, X_val_tensor, Y_val_tensor, X_test_tensor, Y_test_tensor
 
 
-def train_cnn_model(X_train, Y_train, X_val, Y_val, use_optuna=False):
+def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
     """
     Trains a CNN model, optionally using Optuna for hyperparameter tuning.
 
@@ -184,7 +184,7 @@ def train_cnn_model(X_train, Y_train, X_val, Y_val, use_optuna=False):
     return cnn, best_params
 
 
-def evaluate_cnn_model(cnn, X_test, Y_test):
+def evaluate_cnn_A(cnn, X_test, Y_test):
     """
     Evaluates a trained CNN model on the test dataset.
 
