@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from torch.utils.data import Dataset
-from torchvision.datasets import BreastMNIST
+from medmnist import BreastMNIST
 from torchvision import transforms
 import torchvision.transforms.functional as TF
 import matplotlib.pyplot as plt
