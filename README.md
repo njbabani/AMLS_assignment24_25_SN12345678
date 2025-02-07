@@ -34,6 +34,7 @@ You can install these packages via pip (using `requirements.txt`) or set up the 
 
 ## Repo Structure
 
+```
 AMLS_assignment24_25/
 ├── A/
 │   ├── ANN_A.py
@@ -62,3 +63,4 @@ AMLS_assignment24_25/
 ├── main.py
 ├── README.md
 └── .gitignore
+```
