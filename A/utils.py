@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from torch.utils.data import Dataset
+from torchvision.datasets import BreastMNIST
 from torchvision import transforms
 import torchvision.transforms.functional as TF
 
@@ -82,3 +83,56 @@ def shuffle_data(x_data, y_data):
     random.shuffle(combined)
     x_data, y_data = zip(*combined)
     return np.array(x_data), np.array(y_data)
+
+
+def prepare_breastmnist_data():
+    """
+    Loads, augments, shuffles, and processes the BreastMNIST dataset.
+
+    Returns:
+        tuple: Processed datasets:
+            - x_train (np.ndarray): Training images (after augmentation).
+            - y_train (np.ndarray): Training labels.
+            - x_val (np.ndarray): Validation images.
+            - y_val (np.ndarray): Validation labels.
+            - x_test (np.ndarray): Test images.
+            - y_test (np.ndarray): Test labels.
+    """
+    # Step 1: Load the datasets
+    train_dataset = BreastMNIST(split='train', download=True)
+    val_dataset = BreastMNIST(split='val', download=True)
+    test_dataset = BreastMNIST(split='test', download=True)
+
+    # Extract original images and labels
+    x_train, y_train = train_dataset.imgs, train_dataset.labels
+    x_val, y_val = val_dataset.imgs, val_dataset.labels
+    x_test, y_test = test_dataset.imgs, test_dataset.labels
+
+    # Step 2: Apply transformations and augmentations for the training set
+    transform = augmented_transform()
+    augmented_images = []
+    augmented_labels = []
+
+    # Loop through training dataset and augment the data
+    for train_pic in train_dataset:
+        train_img, train_label = train_pic
+
+        # Transform and add the augmented image to the list
+        augmented_image = transform(train_img)
+        augmented_images.append(augmented_image)
+        augmented_labels.append(train_label)
+
+    # Convert augmented data to numpy arrays
+    augmented_images_np = np.array(
+        [img.numpy().squeeze(0) for img in augmented_images]
+        )
+    augmented_labels_np = np.array(augmented_labels)
+
+    # Concatenate original and augmented data
+    x_train = np.concatenate((x_train, augmented_images_np), axis=0)
+    y_train = np.concatenate((y_train, augmented_labels_np), axis=0)
+
+    # Step 3: Shuffle the training data
+    x_train, y_train = shuffle_data(x_train, y_train)
+
+    return x_train, y_train, x_val, y_val, x_test, y_test
