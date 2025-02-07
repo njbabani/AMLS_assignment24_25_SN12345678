@@ -95,6 +95,7 @@ def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
             train_dataset = TensorDataset(X_train, Y_train)
             train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
+            # Prepare the ANN
             ann = ANN(X_train.shape[1], [128, 64, 32], dropout_rate).to(device)
             criterion = nn.BCEWithLogitsLoss()
             optimizer = getattr(optim, optimizer_name.capitalize())(ann.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -113,12 +114,15 @@ def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
                 Y_train.cpu().numpy(),
                 (torch.sigmoid(ann(X_train.to(device))).cpu().numpy() > 0.5).astype(int))
 
+        # Search for parameters that maximises the validation accuracy
         study = optuna.create_study(direction='maximize')
         study.optimize(objective, n_trials=50)
 
+        # Store the Optuna best parameters
         best_params = study.best_params
         print("Best Hyperparameters:", best_params)
     else:
+        # Use pre-assigned parameter values
         best_params = {
             'learning_rate': 0.0005,
             'dropout_rate': 0.3,
@@ -139,7 +143,7 @@ def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
     train_losses, val_losses = [], []
     train_accs, val_accs = [], []
 
-    num_epochs = 50
+    num_epochs = 100
 
     # Training
     for epoch in range(num_epochs):
@@ -148,6 +152,7 @@ def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
 
         for batch_X, batch_y in train_loader:
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+            batch_y = batch_y.squeeze()
             optimizer.zero_grad()
             outputs = ann(batch_X).squeeze()
             loss = criterion(outputs, batch_y)
@@ -171,6 +176,7 @@ def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
         with torch.no_grad():
             for batch_X, batch_y in val_loader:
                 batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+                batch_y = batch_y.squeeze()
                 outputs = ann(batch_X).squeeze()
                 loss = criterion(outputs, batch_y)
                 val_loss += loss.item()
@@ -194,18 +200,38 @@ def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
     return ann, best_params
 
 
-def evaluate_ann_A(ann, X_test, Y_test):
+def evaluate_ann_A(ann_, X_test, Y_test, use_best=True):
     """
     Evaluates an ANN model on the test set.
 
     Args:
-        ann (torch.nn.Module): Trained ANN model.
+        ann_ (torch.nn.Module): Trained ANN model.
         X_test (torch.Tensor): Test feature set.
         Y_test (torch.Tensor): Test labels.
+        use_best (bool): Controls whether to use loaded model or not
 
     Returns:
         dict: Test accuracy and classification report.
     """
+    if use_best:
+        # Use values from Optuna
+        best_params = {'learning_rate': 0.0004787932446465153, 'dropout_rate': 0.32817752317550647, 'weight_decay': 0.0020626520307176284, 'batch_size': 16, 'optimizer': 'adam'}
+
+        # Matching 28x28
+        input_size = 784
+
+        # Fixed architecture
+        hidden_layer_sizes = [128, 64, 32]
+
+        # Creates the ANN module
+        ann = ANN(input_size, hidden_layer_sizes, best_params['dropout_rate']).to(device)
+
+        # Load the best model
+        ann.load_state_dict(ann_)
+    else:
+        # Simply passes the ann_ directly as a model
+        ann = ann_
+
     ann.eval()
     with torch.no_grad():
         outputs = ann(X_test.to(device)).squeeze()
