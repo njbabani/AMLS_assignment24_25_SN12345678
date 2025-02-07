@@ -1,4 +1,7 @@
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score, classification_report
 
 
 def preprocess_for_svm(x_train, y_train, x_val, y_val, x_test, y_test):
@@ -43,3 +46,84 @@ def preprocess_for_svm(x_train, y_train, x_val, y_val, x_test, y_test):
         x_val_svm, y_val_svm,
         x_test_svm, y_test_svm
     )
+
+
+def train_svm_model(x_train, y_train, use_gridsearch=False):
+    """
+    Trains an SVM model with optional GridSearchCV.
+
+    Args:
+        x_train (np.ndarray): Training feature set.
+        y_train (np.ndarray): Training labels.
+        use_gridsearch (bool, optional): Whether to use GridSearchCV.
+
+    Returns:
+        svm: Trained SVM model.
+    """
+    if use_gridsearch:
+        # Define hyperparameter grid
+        param_grid = {
+            'C': [0.1, 1, 5, 10, 20],  # Regularization parameter
+            'gamma': ['scale', 'auto'],  # Kernel coefficient
+            'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],  # Kernels
+            'class_weight': [None, 'balanced']  # For class balancing
+        }
+
+        # GridSearchCV setup
+        svm = GridSearchCV(
+            estimator=SVC(),
+            param_grid=param_grid,
+            scoring='accuracy',
+            cv=10,  # 10-fold cross-validation
+            verbose=2,
+            n_jobs=-1  # Use all available cores
+        )
+    else:
+        # Train a basic SVM model
+        svm = SVC(kernel='rbf', C=1, gamma='scale', class_weight=None)
+
+    # Train model
+    print("Training SVM Model...")
+    svm.fit(x_train, y_train)
+
+    return svm
+
+
+def evaluate_svm_model(svm, x_val, y_val, x_test, y_test):
+    """
+    Evaluates a trained SVM model on validation and test sets.
+
+    Args:
+        svm (sklearn.svm.SVC or GridSearchCV): The trained SVM model.
+        x_val (np.ndarray): Validation feature set.
+        y_val (np.ndarray): Validation labels.
+        x_test (np.ndarray): Test feature set.
+        y_test (np.ndarray): Test labels.
+
+    Returns:
+        dict: A dictionary containing accuracy
+              scores and classification report.
+    """
+    # Predict on validation set
+    y_val_pred = svm.predict(x_val)
+    val_accuracy = accuracy_score(y_val, y_val_pred)
+
+    # Predict on test set
+    y_test_pred = svm.predict(x_test)
+    test_accuracy = accuracy_score(y_test, y_test_pred)
+
+    # Generate classification report
+    report = classification_report(y_test, y_test_pred, digits=4)
+
+    # Print results
+    print(f"Validation Accuracy: {val_accuracy:.4f}")
+    print(f"Test Accuracy: {test_accuracy:.4f}")
+    print("Classification Report:\n", report)
+
+    return {
+        "val_accuracy": val_accuracy,
+        "test_accuracy": test_accuracy,
+        "classification_report": report,
+        "y_test_pred": y_test_pred,
+        "y_test": y_test
+    }
