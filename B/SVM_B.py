@@ -26,7 +26,7 @@ def preprocess_for_svm_blood(x_train, y_train, x_val, y_val, x_test, y_test):
     return x_train_svm, y_train.ravel(), x_val_svm, y_val.ravel(), x_test_svm, y_test.ravel()
 
 
-def train_svm_blood(x_train, y_train, use_gridsearch=False):
+def train_svm_B(x_train, y_train, use_gridsearch=False):
     """
     Trains an SVM model with optional GridSearchCV.
 
@@ -48,7 +48,7 @@ def train_svm_blood(x_train, y_train, use_gridsearch=False):
     return svm
 
 
-def evaluate_svm_blood(svm, x_test, y_test):
+def evaluate_svm_B(svm, x_test, y_test):
     """
     Evaluates an SVM model on BloodMNIST dataset.
 
