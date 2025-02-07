@@ -4,6 +4,8 @@ from torch.utils.data import Dataset
 from torchvision.datasets import BreastMNIST
 from torchvision import transforms
 import torchvision.transforms.functional as TF
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 
 class AugmentedDataset(Dataset):
@@ -136,3 +138,40 @@ def prepare_breastmnist_data():
     x_train, y_train = shuffle_data(x_train, y_train)
 
     return x_train, y_train, x_val, y_val, x_test, y_test
+
+
+def plot_confusion_matrix_A(y_test, y_test_pred, class_labels):
+    """
+    Generates and displays a normalized confusion matrix.
+
+    Args:
+        y_test (np.ndarray): True test labels.
+        y_test_pred (np.ndarray): Predicted test labels.
+        class_labels (list): List of class names.
+
+    Returns:
+        None
+    """
+
+    # Compute confusion matrix
+    cm = confusion_matrix(y_test, y_test_pred)
+
+    # Normalize the confusion matrix (row-wise percentages)
+    cm = cm / cm.sum(axis=1, keepdims=True) * 100
+
+    # Create figure
+    fig, ax = plt.subplots(figsize=(4, 3))
+
+    # Display confusion matrix
+    disp = ConfusionMatrixDisplay(
+        confusion_matrix=cm, display_labels=class_labels
+    )
+    disp.plot(cmap=plt.cm.Blues, values_format=".2f", ax=ax, colorbar=True)
+    ax.grid(False)
+
+    # Title and formatting
+    plt.title(r"Normalized Confusion Matrix", fontsize=10)
+    plt.tight_layout()
+
+    # Display the figure
+    plt.show()
