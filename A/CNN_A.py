@@ -184,6 +184,46 @@ def train_cnn_model(X_train, Y_train, X_val, Y_val, use_optuna=False):
     return cnn, best_params
 
 
+def evaluate_cnn_model(cnn, X_test, Y_test):
+    """
+    Evaluates a trained CNN model on the test dataset.
+
+    Args:
+        cnn (torch.nn.Module): Trained CNN model.
+        X_test (torch.Tensor): Test features.
+        Y_test (torch.Tensor): Test labels.
+
+    Returns:
+        dict: Evaluation metrics, including test accuracy and predictions.
+    """
+    cnn.eval()  # Set the model to evaluation mode
+    test_loss = 0.0
+    correct_test = 0
+    total_test = 0
+    predictions = []
+
+    criterion = nn.BCEWithLogitsLoss()
+
+    with torch.no_grad():
+        outputs = cnn(X_test.to(device)).squeeze()
+        loss = criterion(outputs, Y_test.to(device))
+        test_loss += loss.item()
+
+        # Convert logits to binary predictions (for binary classification tasks)
+        predicted = (torch.sigmoid(outputs) > 0.5).float()
+        correct_test += (predicted.cpu() == Y_test.cpu()).sum().item()
+        total_test += Y_test.size(0)
+
+        predictions = predicted.cpu().numpy()
+
+    test_accuracy = correct_test / total_test
+
+    print(f"[INFO] Test Loss: {test_loss:.4f}")
+    print(f"[INFO] Test Accuracy: {test_accuracy:.4f}")
+
+    return {"test_loss": test_loss, "test_accuracy": test_accuracy, "predictions": predictions}
+
+
 def plot_cnn_training_curves(train_losses, val_losses, train_accs, val_accs):
     """
     Plots training and validation loss/accuracy curves.
@@ -208,7 +248,7 @@ def plot_cnn_training_curves(train_losses, val_losses, train_accs, val_accs):
     plt.grid()
 
     plt.subplot(1, 2, 2)
-    plt.plot(train_accs, label="Training Accuracy", color='red')
+    plt.plot(train_accs, label="Training Accuracy", color='green')
     plt.plot(val_accs, label="Validation Accuracy", color='darkgreen')
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")

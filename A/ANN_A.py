@@ -68,7 +68,7 @@ def prepare_data_ann(x_train, y_train, x_val, y_val, x_test, y_test):
     return X_train, Y_train, X_val, Y_val, X_test, Y_test
 
 
-def train_ann_model(X_train, Y_train, X_val, Y_val, use_optuna=False):
+def train_ann_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
     """
     Trains an ANN model, optionally using Optuna hyperparameter tuning.
 
@@ -194,7 +194,7 @@ def train_ann_model(X_train, Y_train, X_val, Y_val, use_optuna=False):
     return ann, best_params
 
 
-def evaluate_ann_model(ann, X_test, Y_test):
+def evaluate_ann_A(ann, X_test, Y_test):
     """
     Evaluates an ANN model on the test set.
 
