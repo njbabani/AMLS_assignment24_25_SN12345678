@@ -4,7 +4,7 @@ import torch.optim as optim
 import optuna
 import matplotlib.pyplot as plt
 from torch.utils.data import TensorDataset, DataLoader
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 
 # Set device (GPU if available, else CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -112,6 +112,7 @@ def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
             for epoch in range(50):
                 for batch_X, batch_y in train_loader:
                     batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+                    batch_y = batch_y.squeeze()
                     optimizer.zero_grad()
                     outputs = cnn(batch_X).squeeze()
                     loss = criterion(outputs, batch_y.squeeze())
@@ -140,7 +141,7 @@ def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
     optimizer = getattr(optim, best_params["optimizer"].capitalize())(cnn.parameters(), lr=best_params["learning_rate"], weight_decay=best_params["weight_decay"])
 
     # Training loop
-    num_epochs = 50
+    num_epochs = 100
     train_losses, val_losses, train_accs, val_accs = [], [], [], []
 
     for epoch in range(num_epochs):
@@ -149,6 +150,7 @@ def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
 
         for batch_X, batch_y in train_loader:
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+            batch_y = batch_y.squeeze()
             optimizer.zero_grad()
             outputs = cnn(batch_X).squeeze()
             loss = criterion(outputs, batch_y)
@@ -160,6 +162,8 @@ def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
             correct_train += (predicted == batch_y).sum().item()
             total_train += batch_y.size(0)
 
+        train_loss = running_loss / len(train_loader)
+        train_accuracy = correct_train / total_train
         train_losses.append(running_loss / len(train_loader))
         train_accs.append(correct_train / total_train)
 
@@ -169,6 +173,7 @@ def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
         with torch.no_grad():
             for batch_X, batch_y in val_loader:
                 batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+                batch_y = batch_y.squeeze()
                 outputs = cnn(batch_X).squeeze()
                 loss = criterion(outputs, batch_y)
                 val_loss += loss.item()
@@ -177,51 +182,57 @@ def train_cnn_A(X_train, Y_train, X_val, Y_val, use_optuna=False):
                 correct_val += (predicted == batch_y).sum().item()
                 total_val += batch_y.size(0)
 
+        val_loss /= len(val_loader)
+        val_accuracy = correct_val / total_val
         val_losses.append(val_loss / len(val_loader))
         val_accs.append(correct_val / total_val)
+               
+        # Print epoch stats
+        print(f"Epoch {epoch+1}/{num_epochs}: Train Loss={train_loss:.4f}, Train Acc={train_accuracy:.4f}, "
+              f"Val Loss={val_loss:.4f}, Val Acc={val_accuracy:.4f}")
 
     plot_cnn_training_curves(train_losses, val_losses, train_accs, val_accs)
     return cnn, best_params
 
 
-def evaluate_cnn_A(cnn, X_test, Y_test):
+def evaluate_cnn_A(cnn_, X_test, Y_test, use_best=True):
     """
-    Evaluates a trained CNN model on the test dataset.
+    Evaluates a CNN model on the test set for Task A.
 
     Args:
-        cnn (torch.nn.Module): Trained CNN model.
-        X_test (torch.Tensor): Test features.
+        cnn_ (torch.nn.Module or dict): Trained CNN model instance or a state dictionary.
+                                        If use_best is True, cnn_ is assumed to be a state dict.
+        X_test (torch.Tensor): Test feature set.
         Y_test (torch.Tensor): Test labels.
+        use_best (bool): If True, a new CNN instance is created and cnn_'s state dict is loaded.
+                         Otherwise, cnn_ is used directly.
 
     Returns:
-        dict: Evaluation metrics, including test accuracy and predictions.
+        dict: A dictionary containing the test accuracy and a detailed classification report.
     """
-    cnn.eval()  # Set the model to evaluation mode
-    test_loss = 0.0
-    correct_test = 0
-    total_test = 0
-    predictions = []
+    if use_best:
+        # For BreastMNIST, images are greyscale (1 channel)
+        input_channels = 1
+        # Instantiate a new CNN model with the correct architecture
+        cnn = CNN(input_channels).to(device)
+        # Load the state dictionary into the model
+        cnn.load_state_dict(cnn_)
+    else:
+        # Use the provided model instance directly
+        cnn = cnn_
 
-    criterion = nn.BCEWithLogitsLoss()
-
+    cnn.eval()
     with torch.no_grad():
         outputs = cnn(X_test.to(device)).squeeze()
-        loss = criterion(outputs, Y_test.to(device))
-        test_loss += loss.item()
+        # For binary classification, use a sigmoid activation and threshold at 0.5
+        predictions = (torch.sigmoid(outputs) > 0.5).float()
+        test_accuracy = accuracy_score(Y_test.cpu().numpy(), predictions.cpu().numpy())
+        report = classification_report(Y_test.cpu().numpy(), predictions.cpu().numpy(), digits=4)
 
-        # Convert logits to binary predictions (for binary classification tasks)
-        predicted = (torch.sigmoid(outputs) > 0.5).float()
-        correct_test += (predicted.cpu() == Y_test.cpu()).sum().item()
-        total_test += Y_test.size(0)
-
-        predictions = predicted.cpu().numpy()
-
-    test_accuracy = correct_test / total_test
-
-    print(f"[INFO] Test Loss: {test_loss:.4f}")
     print(f"[INFO] Test Accuracy: {test_accuracy:.4f}")
+    print("Classification Report:\n", report)
 
-    return {"test_loss": test_loss, "test_accuracy": test_accuracy, "predictions": predictions}
+    return {"test_accuracy": test_accuracy, "classification_report": report}
 
 
 def plot_cnn_training_curves(train_losses, val_losses, train_accs, val_accs):
