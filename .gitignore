@@ -1,0 +1,8 @@
+# Ignore Python cache directories and files
+__pycache__/
+.pytest_cache/
+main.ipynb
+tests/test_model/
+*.pyc
+*.pyo
+*.py[cod]
