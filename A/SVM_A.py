@@ -48,7 +48,7 @@ def preprocess_for_svm(x_train, y_train, x_val, y_val, x_test, y_test):
     )
 
 
-def train_svm_model(x_train, y_train, use_gridsearch=False):
+def train_svm_A(x_train, y_train, use_gridsearch=False):
     """
     Trains an SVM model with optional GridSearchCV.
 
@@ -89,7 +89,7 @@ def train_svm_model(x_train, y_train, use_gridsearch=False):
     return svm
 
 
-def evaluate_svm_model(svm, x_val, y_val, x_test, y_test):
+def evaluate_svm_A(svm, x_val, y_val, x_test, y_test):
     """
     Evaluates a trained SVM model on validation and test sets.
 
