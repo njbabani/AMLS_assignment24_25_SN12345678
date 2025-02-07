@@ -30,11 +30,15 @@ To run this project, you will need the following Python packages (among others):
 - **matplotlib**
 - **optuna**
 
-You can install these packages via pip (using `requirements.txt`) or set up the Conda environment using `env/environments.yml`.
+## Setup virtual environment
+```bash
+conda env create -f env/environments.yml
+conda activate AMLS-1
+```
 
 ## Repo Structure
 
-```
+```plaintext
 AMLS_assignment24_25/
 ├── A/
 │   ├── ANN_A.py
