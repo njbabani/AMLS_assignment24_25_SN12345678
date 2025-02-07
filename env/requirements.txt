@@ -1,0 +1,15 @@
+numpy
+matplotlib
+medmnist
+jupyter
+jupyterlab
+pylint
+pandas
+torch
+torchvision
+torchsummary
+torcheval
+tqdm
+optuna
+grpcio
+grpcio-tools
