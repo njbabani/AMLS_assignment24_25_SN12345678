@@ -141,7 +141,7 @@ def train_ann_model(X_train, Y_train, X_val, Y_val, use_optuna=False):
 
     num_epochs = 50
 
-    # Training loop
+    # Training
     for epoch in range(num_epochs):
         ann.train()
         running_loss, correct_train, total_train = 0.0, 0, 0
@@ -244,8 +244,8 @@ def plot_ann_training_curves(train_losses, val_losses, train_accs, val_accs):
     plt.grid()
 
     plt.subplot(1, 2, 2)
-    plt.plot(train_accs, label="Training Accuracy", color='green')
-    plt.plot(val_accs, label="Validation Accuracy", color='darkgreen')
+    plt.plot(train_accs, label="Training Accuracy", color='red')
+    plt.plot(val_accs, label="Validation Accuracy", color='darkred')
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
     plt.legend()
