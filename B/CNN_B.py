@@ -36,7 +36,7 @@ class CNN(nn.Module):
         return self.fc(torch.flatten(self.conv_layers(x), start_dim=1))
 
 
-def train_cnn_blood(X_train, Y_train, X_val, Y_val, use_optuna=False):
+def train_cnn_B(X_train, Y_train, X_val, Y_val, use_optuna=False):
     """
     Trains a CNN model on BloodMNIST, optionally using Optuna for hyperparameter tuning.
 
@@ -137,7 +137,7 @@ def train_cnn_blood(X_train, Y_train, X_val, Y_val, use_optuna=False):
     return cnn, best_params
 
 
-def evaluate_cnn_blood(cnn, X_test, Y_test):
+def evaluate_cnn_B(cnn, X_test, Y_test):
     """
     Evaluates a CNN model on the BloodMNIST test set.
 
