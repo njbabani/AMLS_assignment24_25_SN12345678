@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import GridSearchCV
 
 
-def preprocess_for_svm_blood(x_train, y_train, x_val, y_val, x_test, y_test):
+def preprocess_for_svm_B(x_train, y_train, x_val, y_val, x_test, y_test):
     """
     Prepares BloodMNIST dataset for SVM by flattening images and normalizing pixel values.
 
@@ -42,7 +42,8 @@ def train_svm_B(x_train, y_train, use_gridsearch=False):
         param_grid = {'C': [0.1, 1, 5, 10], 'gamma': ['scale', 'auto'], 'kernel': ['rbf'], 'class_weight': [None, 'balanced']}
         svm = GridSearchCV(SVC(), param_grid, scoring='accuracy', cv=10, verbose=2, n_jobs=-1)
     else:
-        svm = SVC(kernel='rbf', C=1, gamma='scale', class_weight=None)
+        # Predefined SVM hyperparameterss
+        svm = SVC(kernel='rbf', C=5, gamma='scale', class_weight='balanced')
 
     svm.fit(x_train, y_train)
     return svm
