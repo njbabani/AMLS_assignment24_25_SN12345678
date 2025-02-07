@@ -46,7 +46,7 @@ class ANN(nn.Module):
         return self.model(x)
 
 
-def train_ann_blood(X_train, Y_train, X_val, Y_val, use_optuna=False):
+def train_ann_B(X_train, Y_train, X_val, Y_val, use_optuna=False):
     """
     Trains an ANN model on BloodMNIST, optionally using Optuna for hyperparameter tuning.
 
@@ -148,7 +148,7 @@ def train_ann_blood(X_train, Y_train, X_val, Y_val, use_optuna=False):
     return ann, best_params
 
 
-def evaluate_ann_blood(ann, X_test, Y_test):
+def evaluate_ann_B(ann, X_test, Y_test):
     """
     Evaluates an ANN model on the BloodMNIST test set.
 
