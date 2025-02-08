@@ -23,8 +23,8 @@ def main():
         except ImportError:
             print("[ERROR] Could not import prepare_breastmnist_data from utils_A. Exiting.")
             sys.exit(1)
+            # Download/load BreastMNIST
         x_train, y_train, x_val, y_val, x_test, y_test = prepare_breastmnist_data()
-        # For Task A, the functions (in svm_A, ann_A, cnn_A) work with these arrays.
     elif task_choice == "2":
         task = "B"
         print("\n[INFO] Task B (BloodMNIST) selected.")
@@ -35,7 +35,7 @@ def main():
             print("[ERROR] medmnist module is not installed. Please install it (e.g. via pip install medmnist) and try again.")
             sys.exit(1)
 
-        # Download/load BloodMNIST (this code assumes that BloodMNIST works similar to BreastMNIST)
+        # Download/load BloodMNIST
         try:
             train_dataset = BloodMNIST(split='train', download=True)
             val_dataset   = BloodMNIST(split='val', download=True)
@@ -45,7 +45,7 @@ def main():
             sys.exit(1)
 
         print("[INFO] Extracting images and labels from BloodMNIST dataset...")
-        # Assuming the dataset object has attributes 'imgs' and 'labels' (like BreastMNIST)
+        # Obtaining images and labels from dataset
         x_train = train_dataset.imgs
         y_train = train_dataset.labels
         x_val   = val_dataset.imgs
@@ -97,6 +97,7 @@ def main():
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
     model_filename = f"best_{model_type}_model_{task}"
+    # SVM models are saved as .joblib but ANN and CNN is .pth
     if model_type == "svm":
         model_filepath = os.path.join(results_dir, model_filename + ".joblib")
     else:
@@ -187,7 +188,7 @@ def main():
             sys.exit(1)
 
         if model_type == "svm":
-            # Load SVM model using joblib (assumed to be a pipeline that handles scaling)
+            # Load SVM model using joblib
             svm_model = joblib.load(model_filepath)
             if task == "A":
                 from A.SVM_A import evaluate_svm_A, preprocess_for_svm
